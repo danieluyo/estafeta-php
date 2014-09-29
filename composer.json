@@ -1,0 +1,16 @@
+{
+    "name": "ivansabik/estafeta",
+    "description": "Unofficial PHP class that wraps package tracking and shipping quotes functionalities for mexican shipping carrier Estafeta",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ivan Rodriguez",
+            "email": "sabik@mandroslabs.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Ivansabik\\Estafeta": "src/"
+        }
+    }
+}
