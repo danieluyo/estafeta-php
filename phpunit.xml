@@ -1,5 +1,5 @@
-<phpunit colors="true">
-    <testsuite name="Estafeta PHP all tests">
+<phpunit bootstrap="./vendor/autoload.php" colors="true">
+    <testsuite>
         <directory>./Tests</directory>
     </testsuite>
 </phpunit>
