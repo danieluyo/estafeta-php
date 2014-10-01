@@ -6,7 +6,7 @@ class CotizacionTest extends \PHPUnit_Framework_TestCase {
 
     private $_estafeta;
     private static $_assertSobre = array(
-        'costos' =>
+        'costos_envio' =>
         array(
             array(
                 'producto' => '11:30',
@@ -51,7 +51,7 @@ class CotizacionTest extends \PHPUnit_Framework_TestCase {
         )
     );
     private static $_assertPaquete = array(
-        'costos' =>
+        'costos_envio' =>
         array(
             array(
                 'producto' => '11:30',

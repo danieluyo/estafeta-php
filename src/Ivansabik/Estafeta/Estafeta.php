@@ -2,6 +2,8 @@
 
 namespace Ivansabik\Estafeta;
 
+use Ivansabik\Estafeta\Parsetafeta;
+
 define('URL_RASTREAR', 'http://rastreo3.estafeta.com/RastreoWebInternet/consultaEnvio.do');
 define('URL_COTIZAR', 'http://herramientascs.estafeta.com/Cotizador/Cotizar');
 define('URL_FIRMA', 'http://rastreo3.estafeta.com');
@@ -9,7 +11,8 @@ define('URL_COMPROBANTE', 'http://rastreo3.estafeta.com/RastreoWebInternet/consu
 
 class Estafeta {
     
-    private $_cotizar, $_html, $_dom;
+    public $infoEnvio, $cotizacion;
+    private $_html, $_dom;
 
     function rastrear($numero) {
         #todo: Manejo de error cuando no existe html o número de rastreo
@@ -19,25 +22,43 @@ class Estafeta {
             'dispatch' => 'doRastreoInternet',
             'guias' => $numero
         );
-        if ($tipoNumero == 'guia') {
-            $paramsPost['tipoGuia'] = 'ESTAFETA';
-        } elseif ($tipoNumero == 'rastreo') {
-            $paramsPost['tipoGuia'] = 'REFERENCE';
-        } elseif ($tipoNumero == 'invalido') {
-            throw new \Exception('No es un número de guía o código de rastreo válido');
-        }
-        # El if nada más para testing
+        if ($tipoNumero == 'guia') $paramsPost['tipoGuia'] = 'ESTAFETA';
+        elseif ($tipoNumero == 'rastreo') $paramsPost['tipoGuia'] = 'REFERENCE';
+        elseif ($tipoNumero == 'invalido') throw new \Exception('No es un número de guía o código de rastreo válido');
+        
+        # El if sólo es para modo testing, que no haga cURL
         if(!$this->_html) {
             $html = $this->_curlHtml(URL_RASTREAR, $paramsPost);
             $this->_html($html);
         }
-        print_r($this->_nodosTexto());
+        # Parse de campos
+        $nodosTexto = $this->_nodosTexto();
+        $infoEnvio = array();
+        $parsetafeta = new Parsetafeta();
+        $parsetafeta->nodosTexto($nodosTexto);
+        $infoEnvio['numero_guia'] = $parsetafeta->numGuia();
+        $infoEnvio['codigo_rastreo'] = $parsetafeta->codigoRastreo();
+        $infoEnvio['origen'] = $parsetafeta->origen();
+        $infoEnvio['destino'] = $parsetafeta->destino();
+        $infoEnvio['cp_destino'] = $parsetafeta->cpDestino();
+        $infoEnvio['servicio'] = $parsetafeta->servicio();
+        $infoEnvio['estatus'] = $parsetafeta->estatus();
+        $infoEnvio['fecha_recoleccion'] = $parsetafeta->fechaRecoleccion();
+        $infoEnvio['fecha_programada'] = $parsetafeta->fechaProgramada();
+        $infoEnvio['fecha_entrega'] = $parsetafeta->fechaEntrega();
+        $infoEnvio['tipo_envio'] = $parsetafeta->tipoEnvio();
+        $infoEnvio['peso'] = $parsetafeta->peso();
+        $infoEnvio['peso_volumetrico'] = $parsetafeta->pesoVol();
+        $infoEnvio['recibio'] = $parsetafeta->recibio();
+        $infoEnvio['movimientos'] = $parsetafeta->movimientos();
+        $infoEnvio['firma_recibido'] = $parsetafeta->firmaRecibido();
+        $this->infoEnvio = $infoEnvio;
     }
     
-    function cotizar($cpOrigen=NULL, $cpDestino=NULL, $peso=NULL, $alto=NULL, $largo=NULL, $ancho=NULL) {
-        if (!$cpOrigen) throw new \Exception('Falta el parametro cp_origen');
-        if (!$cpDestino) throw new \Exception('Falta el parametro cp_destino');
-        if (!preg_match("/^[0-9]{5}$/", $cpOrigen) || !preg_match("/^[0-9]{5}$/", $cpDestino)) throw new \Exception('No es un codigo postal de origen o destino valido');
+    function cotizar($cpOrigen=null, $cpDestino=null, $peso=null, $alto=null, $largo=null, $ancho=null) {
+        if (!$cpOrigen) throw new \Exception('Falta el argumento cpOrigen para cotizar');
+        if (!$cpDestino) throw new \Exception('Falta el argumento cpDestino para cotizar');
+        if (!preg_match("/^[0-9]{5}$/", $cpOrigen) || !preg_match("/^[0-9]{5}$/", $cpDestino)) throw new \Exception('Código postal de origen o destino no válido');
         $tipo = ($peso ? 'paquete' : 'sobre');
         $paramsPost = array(
             'CPOrigen' => $cpOrigen,
@@ -48,41 +69,51 @@ class Estafeta {
 
         # Paquetes
         if ($tipo == 'paquete') {
-            if (!$peso) throw new \Exception('Falta el parametro "peso" para cotizar paquetes');
-            if (!$alto) throw new \Exception('Falta el parametro "alto" para cotizar paquetes');
-            if (!$largo) throw new \Exception('Falta el parametro "largo" para cotizar paquetes');
-            if (!$ancho) throw new \Exception('Falta el parametro "ancho" para cotizar paquetes');
+            if (!$peso) throw new \Exception('Falta el argumento peso para cotizar paquetes');
+            if (!$alto) throw new \Exception('Falta el argumento alto para cotizar paquetes');
+            if (!$largo) throw new \Exception('Falta el argumento largo para cotizar paquetes');
+            if (!$ancho) throw new \Exception('Falta el argumento ancho para cotizar paquetes');
             $paramsPost['Peso'] = $peso;
             $paramsPost['Alto'] = $alto;
             $paramsPost['Largo'] = $largo;
             $paramsPost['Ancho'] = $ancho;
         }
         
-        # El if nada más para testing
+        # El if sólo es para modo testing, que no haga cURL
         if(!$this->_html) {
             $html = $this->_curlHtml(URL_COTIZAR, $paramsPost);
             $this->_html($html);
         }
-        print_r($this->_nodosTexto());
+        
+        $nodosTexto = $this->_nodosTexto();
+        $cotizacion = array();
+        $parsetafeta = new Parsetafeta();
+        $parsetafeta->nodosTexto($nodosTexto);
+        $cotizacion['costos_envio'] = $parsetafeta->costosEnvio();
+        $this->cotizacion = $cotizacion;
     }
     
     private function _html($html) {
-        #todo: Validar que HTML se pueda parsear con módulo DOM
+        $html = iconv(mb_detect_encoding($html, mb_detect_order(), true), 'UTF-8', $html);
         $this->_html = $html;
-        $this->dom = new \DOMDocument();
-        $this->dom->loadHTML($html);
+        $this->_dom = new \DOMDocument();
+        $this->_dom->loadHTML($html);
     }
     
     private function _nodosTexto(){
-        #todo: Convertir cualquier encoding a UTF8
         $nodos = array();
-        $xpath = new \DOMXPath($this->dom);
+        $xpath = new \DOMXPath($this->_dom);
         $nodosTexto = $xpath->query('//text()');
-        foreach($nodosTexto as $nodoTexto) $nodos[]=$nodoTexto->textContent;
+        foreach($nodosTexto as $nodoTexto) {
+            $nodoTexto = $nodoTexto->textContent;
+            $nodos[] = trim($nodoTexto);
+        }
+        $nodos = array_filter($nodos);
+        var_dump($nodos);
+        return $nodos;
     }
 
     private function _curlHtml($url, $params) {        
-        #todo: Manejo de error cuando no existe curl_init()
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -102,27 +133,16 @@ class Estafeta {
     }
 
     private function _asigna_id_movimiento($texto) {
-        # En proceso de entrega
         if (preg_match('/\bEN PROCESO DE ENTREGA\b/i', $texto)) return 1;
-        # Llegada a CEDI
         if (preg_match('/\bLLEGADA A CENTRO DE DISTRIBUCI\b/i', $texto)) return 2;
-        # En ruta foránea  hacia un destino
-        if (preg_match('/\bEN RUTA FOR\b/i', $texto)) return 3;
-        # Recolección en oficina por ruta local
-        if (preg_match('/\bN EN OFICINA\b/i', $texto)) return 4;
-        # Recibido en oficina
+        if (preg_match('/\bEN RUTA FOR\b/i', $texto)) return 3; # En ruta foránea  hacia un destino
+        if (preg_match('/\bN EN OFICINA\b/i', $texto)) return 4; # Recolección en oficina por ruta local
         if (preg_match('/\bRECIBIDO EN OFICINA\b/i', $texto)) return 5;
-        # Movimiento en CEDI
         if (preg_match('/\bMOVIMIENTO EN CENTRO DE DISTRIBUCI\b/i', $texto)) return 6;
-        # Aclaracion en proceso
-        if (preg_match('/\bN EN PROCESO\b/i', $texto)) return 7;
-        # En ruta local
+        if (preg_match('/\bN EN PROCESO\b/i', $texto)) return 7; # Aclaracion en proceso
         if (preg_match('/\bEN RUTA LOCAL\b/i', $texto)) return 8;
-        # Movimiento local
         if (preg_match('/\bMOVIMIENTO LOCAL\b/i', $texto)) return 9;
         return -1;
     }
-
+    
 }
-
-?>
