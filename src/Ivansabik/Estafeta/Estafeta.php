@@ -2,6 +2,9 @@
 
 namespace Ivansabik\Estafeta;
 
+error_reporting(0);
+
+
 use Ivansabik\Estafeta\Parsetafeta;
 
 define('URL_RASTREAR', 'http://rastreo3.estafeta.com/RastreoWebInternet/consultaEnvio.do');
@@ -24,7 +27,6 @@ class Estafeta {
         );
         if ($tipoNumero == 'guia') $paramsPost['tipoGuia'] = 'ESTAFETA';
         elseif ($tipoNumero == 'rastreo') $paramsPost['tipoGuia'] = 'REFERENCE';
-        elseif ($tipoNumero == 'invalido') throw new \Exception('No es un número de guía o código de rastreo válido');
         
         # El if sólo es para modo testing, que no haga cURL
         if(!$this->_html) {
@@ -40,7 +42,6 @@ class Estafeta {
         $infoEnvio['codigo_rastreo'] = $parsetafeta->codigoRastreo();
         $infoEnvio['origen'] = $parsetafeta->origen();
         $infoEnvio['destino'] = $parsetafeta->destino();
-        $infoEnvio['cp_destino'] = $parsetafeta->cpDestino();
         $infoEnvio['servicio'] = $parsetafeta->servicio();
         $infoEnvio['estatus'] = $parsetafeta->estatus();
         $infoEnvio['fecha_recoleccion'] = $parsetafeta->fechaRecoleccion();
@@ -94,7 +95,7 @@ class Estafeta {
     }
     
     private function _html($html) {
-        $html = iconv(mb_detect_encoding($html, mb_detect_order(), true), 'UTF-8', $html);
+        #$html = iconv(mb_detect_encoding($html, mb_detect_order(), true), 'UTF-8', $html);
         $this->_html = $html;
         $this->_dom = new \DOMDocument();
         $this->_dom->loadHTML($html);
@@ -108,8 +109,9 @@ class Estafeta {
             $nodoTexto = $nodoTexto->textContent;
             $nodos[] = trim($nodoTexto);
         }
+        # Quita vacíos, reindex array (0,1,2..)
         $nodos = array_filter($nodos);
-        var_dump($nodos);
+        $nodos = array_values($nodos);
         return $nodos;
     }
 
@@ -129,7 +131,7 @@ class Estafeta {
         # Número de guía (22 y alfanumérico), código de rastreo (10 y numérico)
         if (strlen($numero) == 22 && ctype_alnum(($numero))) return 'guia';
         if (strlen($numero) == 10 && is_numeric(($numero))) return 'rastreo';
-        return 'invalido';
+        throw new \Exception('No es un número de guía o código de rastreo válido');
     }
 
     private function _asigna_id_movimiento($texto) {
