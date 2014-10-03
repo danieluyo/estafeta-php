@@ -37,10 +37,6 @@ Para cotización muestra la info de paquetes y sobres de los siguientes producto
 #### Rastreo
 
 ```
-require '../vendor/autoload.php';
-
-use Ivansabik\Estafeta\Estafeta;
-
 $estafeta = new Estafeta();
 $estafeta->rastrear('2851055655');
 $infoEnvio = $estafeta->infoEnvio;
@@ -49,23 +45,15 @@ $infoEnvio = $estafeta->infoEnvio;
 #### Cotización de sobre
 
 ```
-require '../vendor/autoload.php';
-
-use Ivansabik\Estafeta\Estafeta;
-
 $estafeta = new Estafeta();
 $estafeta->cotizar('01210', '86035');
-$infoEnvio = $estafeta->cotizacion;
+$cotizacion = $estafeta->cotizacion;
 ```
 
 #### Cotización de paquete
 
 ```
-require '../vendor/autoload.php';
-
-use Ivansabik\Estafeta\Estafeta;
-
 $estafeta = new Estafeta();
 $estafeta->cotizar('01210', '86025', 1, 10, 20, 20); # peso, alto, largo, ancho
-$infoEnvio = $estafeta->cotizacion;
+$cotizacion = $estafeta->cotizacion;
 ```
