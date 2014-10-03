@@ -4,14 +4,18 @@ namespace Ivansabik\Estafeta;
 
 class Parsetafeta {
     
-    private $_nodosTexto, $_tablas;
+    private $_nodosTexto, $_tablas, $_imagenes;
     
     function nodosTexto($nodosTexto) {
-        $this->nodosTexto = $nodosTexto;
+        $this->_nodosTexto = $nodosTexto;
     }
     
     function tablas($tablas) {
-        $this->tablas = $tablas;
+        $this->_tablas = $tablas;
+    }
+    
+    function imagenes($imagenes) {
+        $this->_imagenes = $imagenes;
     }
     
     function numGuia() {
@@ -28,12 +32,12 @@ class Parsetafeta {
     }
     
     function destino() {
-        return $this->_parseCampoTexto('Destino');
+        return $this->_parseCampoTexto('Destino', true);
         #todo: Falta CP destino y coordenadas
     }
     
     function servicio() {
-        return $this->_parseCampoTexto('Servicio');
+        return $this->_parseDescCampoTexto('entrega garantizada');
     }
     
     function estatus() {
@@ -71,21 +75,41 @@ class Parsetafeta {
     }
     
     function firmaRecibido() {
+        return $this->_parseImagen('firmaServlet');
     }
     
     function costosEnvio() {
     }
     
-    function _parseCampoTexto($descripcion, $coincidenciaExacta = false) {        
-        for ($i = 0; $i < count($this->nodosTexto) - 1; $i++) {
-            $nodoTexto = $this->nodosTexto[$i];
-            $match = preg_match('/' . $descripcion . '\b/i', $nodoTexto);
-            if ($match) {
-                $resultado = $this->nodosTexto[$i + 1];
-                $descripcion = $nodoTexto;
-                return $resultado;
-            }
+    #todo: Se podría juntar en 1 sola función
+    private function _parseCampoTexto($descripcion, $coincidenciaExacta = false) {        
+        for ($i = 0; $i < count($this->_nodosTexto) - 1; $i++) {
+            $nodoTexto = $this->_nodosTexto[$i];
+            if($coincidenciaExacta) $match = preg_match('/^' . $descripcion . '/', $nodoTexto);
+            else $match = preg_match('/' . $descripcion . '\b/i', $nodoTexto);
+            if($match) return $this->_nodosTexto[$i + 1];
         }
         return false;
     }
+    
+    private function _parseDescCampoTexto($descripcion, $coincidenciaExacta = false) {        
+        for ($i = 0; $i < count($this->_nodosTexto) - 1; $i++) {
+            $nodoTexto = $this->_nodosTexto[$i];
+            if($coincidenciaExacta) $match = preg_match('/^' . $descripcion . '/', $nodoTexto);
+            else $match = preg_match('/' . $descripcion . '\b/i', $nodoTexto);
+            if($match) return $this->_nodosTexto[$i];
+        }
+        return false;
+    }
+    
+    private function _parseImagen($descripcion, $coincidenciaExacta = false) {
+        for ($i = 0; $i < count($this->_imagenes) - 1; $i++) {
+            $imagen = $this->_imagenes[$i];
+            if($coincidenciaExacta) $match = preg_match('/^' . $descripcion . '/', $imagen);
+            else $match = preg_match('/' . $descripcion . '\b/i', $imagen);
+            if($match) return $this->_imagenes[$i];
+        }
+        return false;
+    }
+    
 }

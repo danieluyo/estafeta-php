@@ -11,7 +11,9 @@ define('URL_RASTREAR', 'http://rastreo3.estafeta.com/RastreoWebInternet/consulta
 define('URL_COTIZAR', 'http://herramientascs.estafeta.com/Cotizador/Cotizar');
 define('URL_FIRMA', 'http://rastreo3.estafeta.com');
 define('URL_COMPROBANTE', 'http://rastreo3.estafeta.com/RastreoWebInternet/consultaEnvio.do?dispatch=doComprobanteEntrega&guiaEst=');
+define('URL_FIRMA', 'http://rastreo3.estafeta.com');
 
+#todo: pasar dom a Parsetafeta para que se haga dentro de esa clase todo el manejo
 class Estafeta {
     
     public $infoEnvio, $cotizacion;
@@ -35,9 +37,11 @@ class Estafeta {
         }
         # Parse de campos
         $nodosTexto = $this->_nodosTexto();
+        $imagenes = $this->_imagenes();
         $infoEnvio = array();
         $parsetafeta = new Parsetafeta();
         $parsetafeta->nodosTexto($nodosTexto);
+        $parsetafeta->imagenes($imagenes);
         $infoEnvio['numero_guia'] = $parsetafeta->numGuia();
         $infoEnvio['codigo_rastreo'] = $parsetafeta->codigoRastreo();
         $infoEnvio['origen'] = $parsetafeta->origen();
@@ -52,7 +56,7 @@ class Estafeta {
         $infoEnvio['peso_volumetrico'] = $parsetafeta->pesoVol();
         $infoEnvio['recibio'] = $parsetafeta->recibio();
         $infoEnvio['movimientos'] = $parsetafeta->movimientos();
-        $infoEnvio['firma_recibido'] = $parsetafeta->firmaRecibido();
+        $infoEnvio['firma_recibido'] = URL_FIRMA . $parsetafeta->firmaRecibido();
         $this->infoEnvio = $infoEnvio;
     }
     
@@ -109,10 +113,22 @@ class Estafeta {
             $nodoTexto = $nodoTexto->textContent;
             $nodos[] = trim($nodoTexto);
         }
-        # Quita vacíos, reindex array (0,1,2..)
+        # Quita vacíos '', Vuelve a indexar arreglo (0,1,2..)
         $nodos = array_filter($nodos);
         $nodos = array_values($nodos);
         return $nodos;
+    }
+    
+    private function _imagenes(){
+        $nodos = array();
+        $xpath = new \DOMXPath($this->_dom);
+        $imagenes = array();
+        $imagenesDom = $xpath->query('//img');
+        foreach($imagenesDom as $imagenDom) {
+            $imagen = $imagenDom->getAttribute('src');
+            $imagenes[] = $imagen;
+        }
+        return $imagenes;
     }
 
     private function _curlHtml($url, $params) {        
@@ -144,7 +160,7 @@ class Estafeta {
         if (preg_match('/\bN EN PROCESO\b/i', $texto)) return 7; # Aclaracion en proceso
         if (preg_match('/\bEN RUTA LOCAL\b/i', $texto)) return 8;
         if (preg_match('/\bMOVIMIENTO LOCAL\b/i', $texto)) return 9;
-        return -1;
+        return false;
     }
     
 }

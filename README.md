@@ -46,7 +46,7 @@ $infoEnvio = $estafeta->infoEnvio;
 
 ```
 $estafeta = new Estafeta();
-$estafeta->cotizar('01210', '86035');
+$estafeta->cotizar('01210', '86035'); # cp origen, cp destino
 $cotizacion = $estafeta->cotizacion;
 ```
 
@@ -54,6 +54,6 @@ $cotizacion = $estafeta->cotizacion;
 
 ```
 $estafeta = new Estafeta();
-$estafeta->cotizar('01210', '86025', 1, 10, 20, 20); # peso, alto, largo, ancho
+$estafeta->cotizar('01210', '86025', 1, 10, 20, 20); # cp origen, cp destino, peso, alto, largo, ancho
 $cotizacion = $estafeta->cotizacion;
 ```
