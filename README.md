@@ -36,7 +36,7 @@ Para cotización muestra la info de paquetes y sobres de los siguientes producto
 
 #### Rastreo
 
-```
+```php
 $estafeta = new Estafeta();
 $estafeta->rastrear('2851055655');
 $infoEnvio = $estafeta->infoEnvio;
@@ -44,7 +44,7 @@ $infoEnvio = $estafeta->infoEnvio;
 
 #### Cotización de sobre
 
-```
+```php
 $estafeta = new Estafeta();
 $estafeta->cotizar('01210', '86035'); # cp origen, cp destino
 $cotizacion = $estafeta->cotizacion;
@@ -52,7 +52,7 @@ $cotizacion = $estafeta->cotizacion;
 
 #### Cotización de paquete
 
-```
+```php
 $estafeta = new Estafeta();
 $estafeta->cotizar('01210', '86025', 1, 10, 20, 20); # cp origen, cp destino, peso, alto, largo, ancho
 $cotizacion = $estafeta->cotizacion;
