@@ -2,16 +2,12 @@
 
 namespace Ivansabik\Estafeta;
 
-error_reporting(0);
-
-
 use Ivansabik\Estafeta\Parsetafeta;
 
 define('URL_RASTREAR', 'http://rastreo3.estafeta.com/RastreoWebInternet/consultaEnvio.do');
 define('URL_COTIZAR', 'http://herramientascs.estafeta.com/Cotizador/Cotizar');
 define('URL_FIRMA', 'http://rastreo3.estafeta.com');
 define('URL_COMPROBANTE', 'http://rastreo3.estafeta.com/RastreoWebInternet/consultaEnvio.do?dispatch=doComprobanteEntrega&guiaEst=');
-define('URL_FIRMA', 'http://rastreo3.estafeta.com');
 
 #todo: pasar dom a Parsetafeta para que se haga dentro de esa clase todo el manejo
 class Estafeta {
@@ -131,7 +127,8 @@ class Estafeta {
         return $imagenes;
     }
 
-    private function _curlHtml($url, $params) {        
+    private function _curlHtml($url, $params) {  
+		if (!function_exists('curl_version')) throw new \Exception('Es necesario instalar el módulo cURl para hacer llamadas curl_init(), "sudo apt-get install php5-curl" en debian/mint/ubuntu');
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
